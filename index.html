@@ -439,13 +439,15 @@
   <!-- ===================== ABOUT ===================== -->
   <section id="panel-about" class="panel">
     <div class="prose">
-      <h2>What this is</h2>
+      <h2>Why was this made? What does it do?</h2>
       <p>
-        This is a rating update formula I put together after spending too long being annoyed at
-        the parts of Elo that don't hold up well — namely a fixed K-factor that treats a newcomer
-        and a veteran the same, and no real way to fold in a run of several games at once. The
-        one piece of Elo I kept on purpose is its expected-score curve, because that part was
-        never the problem.
+        As you likely know if you stumbled unto this webpage, Elo is a rating system that's used in
+        many popular games, such as chess, Rocket League, League of Legends, etc etc, with the job
+        of giving players a score assigned to themselves, representing their skill level.
+        Elo is indeed a well built system, but it has some flaws. For example:
+        It's too complicated, is too harsh to some players and too kind to others,
+        and it has far too many factors to be used in a basic calculator. I'm addressing all of
+        these in my new system: Delta.
       </p>
 
       <div class="formula-block" id="katex-main"></div>
@@ -463,7 +465,7 @@
       <p>
         The multiplier out front, <strong style="color: var(--text); font-family: var(--mono);">K</strong>, is how reactive a rating is at any
         given moment. The raw piece inside it, <span style="font-family: var(--mono);">max(8, (3100&minus;r)/75)</span>,
-        shrinks steadily as a rating climbs toward 3100 and flattens out at a floor of 8, so a
+        shrinks steadily as a rating climbs toward 2500, and flattens out at a floor of 8, so a
         rating never goes completely inert — even someone near the top of the scale still moves a
         little on a real result. Below 3100 the term does most of the work Elo's flat K-factor was
         never quite built for: it lets new or lower-rated players converge on their true level
