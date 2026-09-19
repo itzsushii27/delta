@@ -461,30 +461,34 @@
         <div><span class="sym">ΔR</span><span class="desc">the resulting rating change</span></div>
       </div>
 
-      <h2>The K-factor</h2>
+      <h2>Then what's that big block?</h2>
       <p>
         The multiplier out front, <strong style="color: var(--text); font-family: var(--mono);">K</strong>, is how reactive a rating is at any
         given moment. The raw piece inside it, <span style="font-family: var(--mono);">max(8, (3100&minus;r)/75)</span>,
         shrinks steadily as a rating climbs toward 2500, and flattens out at a floor of 8, so a
-        rating never goes completely inert — even someone near the top of the scale still moves a
-        little on a real result. Below 3100 the term does most of the work Elo's flat K-factor was
-        never quite built for: it lets new or lower-rated players converge on their true level
-        quickly, while high-rated players get judged on a longer track record.
-      </p>
+        rating never gets completely frozen at very high-level play. Below 2500 the term will
+        change lower rated player's ratings more, and higher rated players less, and there are
+        a few good reasons for this design choice. Firstly, lower rated players or far more 
+        likely to still be improving, hence when they play well, they should start to see 
+        rating improvements mirroring their skill. Secondly, experience. Top players have
+        obviously been playing for far longer than everyone else, meaning there is more
+        certainty of where they are placed, and erratic change contradicts that. 
+        There are more examples, but for the sake of consision, I will stop there.
       <p>
-        The compression factor <span style="font-family: var(--mono);">c</span> sits on top of
-        that and doesn't change what the K-factor is trying to do — it changes how far it's
-        allowed to stretch above the floor. At <span style="font-family: var(--mono);">c = 1</span>
+        The compression factor <span style="font-family: var(--mono);">c</span> is there for 
+        systems that wish not to use the dynamic K system I showed to the extent that's shown.
+        A higher C means a lower difference between the rating change of say a 250 and a 2500. 
+        At <span style="font-family: var(--mono);">c = 1</span>
         the term is untouched. Push <span style="font-family: var(--mono);">c</span> higher and
-        every rating's K-factor gets pulled proportionally closer to 8, flattening the difference
-        in volatility between a brand-new player and a seasoned one without moving the floor or
-        the 3100 ceiling. It's a single dial for how much the system trusts a small number of
-        games, independent of everything else in the formula.
+        every rating's K-factor gets pulled closer to 8, flattening the difference in volatility
+        between a brand-new player and a seasoned one without moving the floor or the ceiling.
+        If the people running the system dislike the rating based K, they can simply choose a
+        static K value, like 20.
       </p>
 
       <div class="formula-block" id="katex-full-k"></div>
 
-      <h2>Performance, adjusted for who you played</h2>
+      <h2>So what does the rest do?</h2>
       <p>
         The first piece of the bracket, <span id="katex-perf"></span>, is the actual score rate:
         net wins over total games, shifted up by one so an even record lands on 1 instead of 0.
