@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ΔR — A Rating System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #10141b;
+    --surface: #171c25;
+    --surface-2: #1e2430;
+    --text: #e7e4dc;
+    --text-muted: #8b93a3;
+    --accent: #d8a94e;
+    --accent-dim: #7c6a3f;
+    --negative: #b85c4c;
+    --rule: rgba(231, 228, 220, 0.12);
+    --rule-strong: rgba(231, 228, 220, 0.22);
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  a { color: var(--accent); }
+
+  .shell {
+    width: 100%;
+    max-width: 980px;
+    padding: 0 24px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    padding-top: calc(48px + env(safe-area-inset-top, 0px));
+    padding-bottom: 28px;
+  }
+
+  .mark-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+  }
+
+  .mark {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+  }
+
+  .mark span { color: var(--text-muted); font-weight: 500; }
+
+  nav {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  nav button {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  nav button:hover { color: var(--text); }
+
+  nav button.active {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  nav button:focus-visible,
+  input:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  h1.tagline {
+    margin: 22px 0 0;
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 600;
+    line-height: 1.15;
+    max-width: 15ch;
+  }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 28px 0 0;
+  }
+
+  /* ---------- Panels ---------- */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ---------- Calculator ---------- */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    .calc-grid { grid-template-columns: 1fr; }
+  }
+
+  .field-group {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 28px;
+  }
+
+  .field-group h2, .result h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    margin: 0 0 22px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .field {
+    display: grid;
+    grid-template-columns: 1fr 100px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .field:first-of-type { border-top: none; }
+
+  .field label {
+    font-size: 15px;
+  }
+
+  .field label .sub {
+    display: block;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .field input {
+    font-family: var(--mono);
+    font-size: 15px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule-strong);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 10px;
+    width: 100%;
+    text-align: right;
+  }
+
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 28px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .delta-display {
+    font-family: var(--mono);
+    font-size: clamp(44px, 7vw, 64px);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: color 0.15s ease;
+  }
+
+  .delta-display.pos { color: var(--accent); }
+  .delta-display.neg { color: var(--negative); }
+
+  .delta-caption {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 26px;
+  }
+
+  .breakdown {
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 9px 0;
+    font-size: 14px;
+  }
+
+  .breakdown-row .k {
+    color: var(--text-muted);
+  }
+
+  .breakdown-row .v {
+    font-family: var(--mono);
+    font-size: 14.5px;
+  }
+
+  .expected-note {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .expected-note strong { color: var(--text); font-family: var(--mono); font-weight: 600; }
+
+  /* ---------- About / writing ---------- */
+  .prose {
+    margin-top: 40px;
+    max-width: 640px;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+
+  .prose p { margin: 0 0 20px; }
+
+  .prose h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 48px 0 16px;
+  }
+
+  .prose h2:first-child { margin-top: 0; }
+
+  .formula-block {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 32px 24px;
+    margin: 28px 0;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .formula-block .katex { font-size: 1.15em; color: var(--text); }
+  .formula-block .katex .mord, .formula-block .katex .mrel, .formula-block .katex .mbin { color: var(--text); }
+
+  .var-list {
+    font-size: 15px;
+    margin: 20px 0 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .var-list div {
+    display: flex;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .var-list .sym {
+    font-family: var(--mono);
+    color: var(--accent);
+    min-width: 28px;
+  }
+
+  .var-list .desc { color: var(--text-muted); }
+
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 14px;
+    margin: 24px 0 32px;
+  }
+
+  table.compare th, table.compare td {
+    text-align: right;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  table.compare th:first-child, table.compare td:first-child { text-align: left; }
+
+  table.compare th {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12.5px;
+  }
+
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 8px 0 32px;
+    overflow-x: auto;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .chart-legend .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="mark-row">
+      <div class="mark">ΔR <span>/ rating system</span></div>
+      <nav>
+        <button id="tab-btn-calc" class="active" onclick="showTab('calc')">Calculator</button>
+        <button id="tab-btn-about" onclick="showTab('about')">How it works</button>
+      </nav>
+    </div>
+    <h1 class="tagline">A rating update built from a tunable K-factor and an Elo-true expected score.</h1>
+    <hr class="rule">
+  </header>
+
+  <!-- ===================== CALCULATOR ===================== -->
+  <section id="panel-calc" class="panel active">
+    <div class="calc-grid">
+      <div class="field-group">
+        <h2>inputs</h2>
+
+        <div class="field">
+          <label for="in-r">Your rating<span class="sub">r — before this result</span></label>
+          <input id="in-r" type="number" value="1500" step="1">
+        </div>
+        <div class="field">
+          <label for="in-o">Opponent rating<span class="sub">o — average faced</span></label>
+          <input id="in-o" type="number" value="1600" step="1">
+        </div>
+        <div class="field">
+          <label for="in-w">Wins<span class="sub">w</span></label>
+          <input id="in-w" type="number" value="6" step="1" min="0">
+        </div>
+        <div class="field">
+          <label for="in-l">Losses<span class="sub">l</span></label>
+          <input id="in-l" type="number" value="4" step="1" min="0">
+        </div>
+        <div class="field">
+          <label for="in-g">Games played<span class="sub">g — including draws</span></label>
+          <input id="in-g" type="number" value="10" step="1" min="1">
+        </div>
+        <div class="field">
+          <label for="in-c">K compression<span class="sub">c — 1 leaves K unchanged</span></label>
+          <input id="in-c" type="number" value="1" step="0.1" min="0.1">
+        </div>
+      </div>
+
+      <div class="result">
+        <h2>rating change</h2>
+        <div class="delta-display" id="delta-display">+0</div>
+        <div class="delta-caption" id="delta-caption">new rating: 1500</div>
+
+        <div class="breakdown">
+          <div class="breakdown-row"><span class="k">K-factor (raw)</span><span class="v" id="out-k-raw">—</span></div>
+          <div class="breakdown-row"><span class="k">K-factor (applied)</span><span class="v" id="out-k">—</span></div>
+          <div class="breakdown-row"><span class="k">Performance rate</span><span class="v" id="out-perf">—</span></div>
+          <div class="breakdown-row"><span class="k">Expected rate</span><span class="v" id="out-expect">—</span></div>
+        </div>
+
+        <div class="expected-note">
+          Implied expected score for this matchup: <strong id="out-e">—</strong>.
+          Given the rating gap, this is roughly what a break-even record would have been worth.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ABOUT ===================== -->
+  <section id="panel-about" class="panel">
+    <div class="prose">
+      <h2>What this is</h2>
+      <p>
+        This is a rating update formula I put together after spending too long being annoyed at
+        the parts of Elo that don't hold up well — namely a fixed K-factor that treats a newcomer
+        and a veteran the same, and no real way to fold in a run of several games at once. The
+        one piece of Elo I kept on purpose is its expected-score curve, because that part was
+        never the problem.
+      </p>
+
+      <div class="formula-block" id="katex-main"></div>
+
+      <div class="var-list">
+        <div><span class="sym">r</span><span class="desc">your rating going into this result</span></div>
+        <div><span class="sym">o</span><span class="desc">the opponent's rating, or the average of the field you played</span></div>
+        <div><span class="sym">w, l</span><span class="desc">wins and losses across the games being scored</span></div>
+        <div><span class="sym">g</span><span class="desc">total games played, including draws</span></div>
+        <div><span class="sym">c</span><span class="desc">K compression — 1 leaves K untouched, higher values pull it toward the floor of 8</span></div>
+        <div><span class="sym">ΔR</span><span class="desc">the resulting rating change</span></div>
+      </div>
+
+      <h2>The K-factor</h2>
+      <p>
+        The multiplier out front, <strong style="color: var(--text); font-family: var(--mono);">K</strong>, is how reactive a rating is at any
+        given moment. The raw piece inside it, <span style="font-family: var(--mono);">max(8, (3100&minus;r)/75)</span>,
+        shrinks steadily as a rating climbs toward 3100 and flattens out at a floor of 8, so a
+        rating never goes completely inert — even someone near the top of the scale still moves a
+        little on a real result. Below 3100 the term does most of the work Elo's flat K-factor was
+        never quite built for: it lets new or lower-rated players converge on their true level
+        quickly, while high-rated players get judged on a longer track record.
+      </p>
+      <p>
+        The compression factor <span style="font-family: var(--mono);">c</span> sits on top of
+        that and doesn't change what the K-factor is trying to do — it changes how far it's
+        allowed to stretch above the floor. At <span style="font-family: var(--mono);">c = 1</span>
+        the term is untouched. Push <span style="font-family: var(--mono);">c</span> higher and
+        every rating's K-factor gets pulled proportionally closer to 8, flattening the difference
+        in volatility between a brand-new player and a seasoned one without moving the floor or
+        the 3100 ceiling. It's a single dial for how much the system trusts a small number of
+        games, independent of everything else in the formula.
+      </p>
+
+      <div class="formula-block" id="katex-full-k"></div>
+
+      <h2>Performance, adjusted for who you played</h2>
+      <p>
+        The first piece of the bracket, <span id="katex-perf"></span>, is the actual score rate:
+        net wins over total games, shifted up by one so an even record lands on 1 instead of 0.
+        It runs from 0 for an unbroken loss streak up to 2 for an unbroken win streak, regardless
+        of how many games <span style="font-family: var(--mono);">g</span> that record is spread
+        across.
+      </p>
+      <p>
+        The second piece, <span id="katex-expect-term"></span>, is the expected version of that
+        same rate, built from the same <em>tanh</em> curve Elo's own expected-score logistic
+        reduces to, also shifted up by one so it sits on the same 0–2 scale as the performance
+        rate above. It reads 1 for an even matchup, climbs toward 2 the more you're favored, and
+        drops toward 0 the more you're the underdog.
+      </p>
+      <p>
+        The rating change comes from the gap between the two —
+        <span style="font-family: var(--mono);">performance rate &minus; expected rate</span> —
+        which stays within &plusmn;1 of either extreme no matter how large
+        <span style="font-family: var(--mono);">g</span> gets. A long, mostly-drawn stretch
+        against a similarly-rated opponent now correctly produces a rating change near zero,
+        instead of one that grows with the game count.
+      </p>
+
+      <h2>Borrowing Elo's expected score, exactly</h2>
+      <p>
+        The <em>tanh</em> term isn't arbitrary — it's built to reproduce Elo's expected-score
+        curve almost exactly, using this identity between the logistic function and hyperbolic
+        tangent:
+      </p>
+      <div class="formula-block" id="katex-identity"></div>
+      <p>
+        Solving for the divisor that makes the two curves coincide gives <span id="katex-k-exact"></span>,
+        which rounds cleanly to <strong style="color: var(--text); font-family: var(--mono);">350</strong> with
+        negligible drift. So the implied expected score here,
+      </p>
+      <div class="formula-block" id="katex-e"></div>
+      <p>
+        tracks classical Elo to within about half a percentage point across the whole range,
+        rather than approximating it loosely.
+      </p>
+
+      <table class="compare">
+        <thead>
+          <tr><th>Rating advantage (r − o)</th><th>tanh / 350</th><th>Elo</th></tr>
+        </thead>
+        <tbody id="compare-body"></tbody>
+      </table>
+
+      <p>
+        Plotted across rating differences, the term itself — <span style="font-family: var(--mono);">1 + tanh((r&minus;o)/350)</span> —
+        looks like this:
+      </p>
+
+      <div class="chart-wrap">
+        <svg id="curve-chart" viewBox="0 0 640 320" width="100%" style="max-width: 640px; display:block; margin: 0 auto;"></svg>
+      </div>
+
+      <p>
+        Flat near 0 or 2 at the extremes, climbing steeply through the middle — a small rating gap
+        moves the expected rate a lot, and the swing tapers off fast once the outcome is already
+        close to certain.
+      </p>
+
+      <h2>Where this leaves things</h2>
+      <p>
+        None of this claims to be a finished, validated rating system — it's one attempt at fixing
+        the two things about Elo that bothered me most, while keeping the one piece that's earned
+        its keep over decades of use. Everything above the expected-score curve — the K-factor
+        shape, the floor of 8, the ceiling of 3100, the square-root scaling of performance — is a
+        deliberate design choice, and open to being wrong in ways I haven't found yet.
+      </p>
+    </div>
+  </section>
+
+  <footer>ΔR — a rating system, built and explained on this page.</footer>
+</div>
+
+<script>
+  function showTab(name) {
+    document.getElementById('panel-calc').classList.toggle('active', name === 'calc');
+    document.getElementById('panel-about').classList.toggle('active', name === 'about');
+    document.getElementById('tab-btn-calc').classList.toggle('active', name === 'calc');
+    document.getElementById('tab-btn-about').classList.toggle('active', name === 'about');
+  }
+
+  // ---------- Calculator logic ----------
+  const DIVISOR = 350;
+
+  function fmt(n, digits) {
+    digits = digits === undefined ? 2 : digits;
+    const v = Number(n.toFixed(digits));
+    return (v > 0 ? '+' : '') + v.toString();
+  }
+
+  function recalc() {
+    const r = parseFloat(document.getElementById('in-r').value) || 0;
+    const o = parseFloat(document.getElementById('in-o').value) || 0;
+    const w = parseFloat(document.getElementById('in-w').value) || 0;
+    const l = parseFloat(document.getElementById('in-l').value) || 0;
+    let g = parseFloat(document.getElementById('in-g').value) || 1;
+    if (g < 1) g = 1;
+    let c = parseFloat(document.getElementById('in-c').value);
+    if (!c || c < 0.1) c = 0.1;
+
+    const kRaw = Math.max(8, (3100 - r) / 75);
+    const k = 8 + (kRaw - 8) / c;
+    const perf = (w - l + g) / g;
+    const expectAdj = Math.tanh((r - o) / DIVISOR);
+    const expectTerm = 1 + expectAdj;
+    const bracket = perf - expectTerm;
+    const deltaR = k * bracket;
+    const e = (1 + expectAdj) / 2;
+
+    const disp = document.getElementById('delta-display');
+    disp.textContent = fmt(deltaR, 1);
+    disp.className = 'delta-display ' + (deltaR >= 0 ? 'pos' : 'neg');
+
+    document.getElementById('delta-caption').textContent =
+      'new rating: ' + Math.round(r + deltaR);
+
+    document.getElementById('out-k-raw').textContent = kRaw.toFixed(2);
+    document.getElementById('out-k').textContent = k.toFixed(2);
+    document.getElementById('out-perf').textContent = perf.toFixed(3);
+    document.getElementById('out-expect').textContent = expectTerm.toFixed(3);
+    document.getElementById('out-e').textContent = (e * 100).toFixed(1) + '%';
+  }
+
+  ['in-r', 'in-o', 'in-w', 'in-l', 'in-g', 'in-c'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+  recalc();
+
+  // ---------- KaTeX rendering ----------
+  function render(id, tex, displayMode) {
+    try {
+      katex.render(tex, document.getElementById(id), { throwOnError: false, displayMode: !!displayMode });
+    } catch (e) { /* fail quiet */ }
+  }
+
+  render('katex-main',
+    '\\Delta R = \\left(8 + \\frac{\\max\\left(8,\\ \\frac{3100-r}{75}\\right) - 8}{c}\\right) \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
+    true);
+  render('katex-full-k',
+    '\\Delta R = K \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
+    true);
+  render('katex-perf', '\\dfrac{w-l}{g}+1');
+  render('katex-expect-term', '1+\\tanh\\!\\left(\\dfrac{r-o}{350}\\right)');
+  render('katex-identity',
+    '\\frac{1}{1+10^{-d/400}} \\;=\\; \\frac{1+\\tanh\\!\\left(\\dfrac{d \\ln 10}{800}\\right)}{2}',
+    true);
+  render('katex-k-exact', 'k = \\dfrac{800}{\\ln 10} \\approx 347.43');
+  render('katex-e', 'E(d) = \\dfrac{1 + \\tanh(d / 350)}{2}');
+
+  // ---------- Comparison table ----------
+  const gaps = [0, 100, 200, 300, 400, 500, 600, 800, 1000];
+  const tbody = document.getElementById('compare-body');
+  gaps.forEach(function (d) {
+    const eTanh = (1 + Math.tanh(d / 350)) / 2;
+    const eElo = 1 / (1 + Math.pow(10, -d / 400));
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + d + '</td><td>' + eTanh.toFixed(3) + '</td><td>' + eElo.toFixed(3) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // ---------- Curve chart (inline SVG, no external libs) ----------
+  (function drawChart() {
+    const svg = document.getElementById('curve-chart');
+    const W = 640, H = 320, pad = { l: 44, r: 16, t: 16, b: 34 };
+    const xMin = -1000, xMax = 1000, yMin = 0, yMax = 2;
+
+    function xPix(d) { return pad.l + (d - xMin) / (xMax - xMin) * (W - pad.l - pad.r); }
+    function yPix(e) { return H - pad.b - (e - yMin) / (yMax - yMin) * (H - pad.t - pad.b); }
+
+    function path(fn) {
+      let d = '';
+      for (let i = 0; i <= 100; i++) {
+        const x = xMin + (xMax - xMin) * i / 100;
+        const y = fn(x);
+        d += (i === 0 ? 'M' : 'L') + xPix(x).toFixed(1) + ',' + yPix(y).toFixed(1) + ' ';
+      }
+      return d;
+    }
+
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const muted = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+    const rule = getComputedStyle(document.documentElement).getPropertyValue('--rule-strong').trim();
+
+    let svgContent = '';
+
+    // axes
+    svgContent += '<line x1="' + pad.l + '" y1="' + yPix(0) + '" x2="' + (W - pad.r) + '" y2="' + yPix(0) + '" stroke="' + rule + '" stroke-width="1"/>';
+    svgContent += '<line x1="' + xPix(0) + '" y1="' + pad.t + '" x2="' + xPix(0) + '" y2="' + (H - pad.b) + '" stroke="' + rule + '" stroke-width="1"/>';
+
+    // y ticks 0, 1, 2
+    [0, 1, 2].forEach(function (v) {
+      svgContent += '<line x1="' + pad.l + '" y1="' + yPix(v) + '" x2="' + (W - pad.r) + '" y2="' + yPix(v) + '" stroke="' + rule + '" stroke-width="0.5" stroke-dasharray="2,3"/>';
+      svgContent += '<text x="' + (pad.l - 8) + '" y="' + (yPix(v) + 4) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="' + muted + '">' + v.toFixed(0) + '</text>';
+    });
+
+    // x ticks
+    [-1000, -500, 0, 500, 1000].forEach(function (d) {
+      svgContent += '<text x="' + xPix(d) + '" y="' + (H - pad.b + 18) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="' + muted + '">' + d + '</text>';
+    });
+
+    // 1 + tanh((r-o)/350), the raw expectation term
+    svgContent += '<path d="' + path(function (d) { return 1 + Math.tanh(d / 350); }) + '" fill="none" stroke="' + accent + '" stroke-width="2.5"/>';
+
+    svg.innerHTML = svgContent;
+  })();
+</script>
+</body>
+</html>
