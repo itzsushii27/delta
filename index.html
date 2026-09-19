@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ΔR — A Rating System</title>
+<title>Delta — A Rating System</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -374,7 +374,7 @@
 
   <header>
     <div class="mark-row">
-      <div class="mark">ΔR <span>/ rating system</span></div>
+      <div class="mark">Delta <span>/ rating system</span></div>
       <nav>
         <button id="tab-btn-calc" class="active" onclick="showTab('calc')">Calculator</button>
         <button id="tab-btn-about" onclick="showTab('about')">How it works</button>
@@ -483,46 +483,42 @@
         every rating's K-factor gets pulled closer to 8, flattening the difference in volatility
         between a brand-new player and a seasoned one without moving the floor or the ceiling.
         If the people running the system dislike the rating based K, they can simply choose a
-        static K value, like 20.
+        static K value, like 20, or use their own system to determine K. The K system I made
+        isn't mandatory, it's a suggestion.
       </p>
 
       <div class="formula-block" id="katex-full-k"></div>
 
       <h2>So what does the rest do?</h2>
       <p>
-        The first piece of the bracket, <span id="katex-perf"></span>, is the actual score rate:
-        net wins over total games, shifted up by one so an even record lands on 1 instead of 0.
-        It runs from 0 for an unbroken loss streak up to 2 for an unbroken win streak, regardless
-        of how many games <span style="font-family: var(--mono);">g</span> that record is spread
-        across.
+        The first piece of the bracket, <span id="katex-perf"></span>, is net wins over games.
+        It runs from -1 for losing all your games up to 1 for winning all your games, regardless
+        of how many games that record is spread across.
       </p>
       <p>
-        The second piece, <span id="katex-expect-term"></span>, is the expected version of that
-        same rate, built from the same <em>tanh</em> curve Elo's own expected-score logistic
-        reduces to, also shifted up by one so it sits on the same 0–2 scale as the performance
-        rate above. It reads 1 for an even matchup, climbs toward 2 the more you're favored, and
-        drops toward 0 the more you're the underdog.
+        The second piece, <span id="katex-expect-term"></span>, is built to counteract the first
+        piece based on your opponents. Because defeating a skilled player is more impressive
+        than defeating a beginner, this outputs a value between -1, for an opponent far below you.
+        It serves as an expected score of the first piece, what the system expects of you. If you
+        perform above this, you gain rating, and if you perform below, you lose rating.
       </p>
       <p>
-        The rating change comes from the gap between the two —
+        The rating change comes from the gap between the two
         <span style="font-family: var(--mono);">performance rate &minus; expected rate</span> —
-        which stays within &plusmn;1 of either extreme no matter how large
-        <span style="font-family: var(--mono);">g</span> gets. A long, mostly-drawn stretch
-        against a similarly-rated opponent now correctly produces a rating change near zero,
-        instead of one that grows with the game count.
+        which stays within &plusmn;1 of either extreme.
       </p>
 
-      <h2>Borrowing Elo's expected score, exactly</h2>
+      <h2>How does the second piece work?</h2>
       <p>
-        The <em>tanh</em> term isn't arbitrary — it's built to reproduce Elo's expected-score
-        curve almost exactly, using this identity between the logistic function and hyperbolic
-        tangent:
+        The <em>tanh</em> term was designed to follow the expected score of Elo very closely,
+        as Elo's expected score formula is very well made, and has been tested for years of
+        use in different fields.
       </p>
       <div class="formula-block" id="katex-identity"></div>
       <p>
         Solving for the divisor that makes the two curves coincide gives <span id="katex-k-exact"></span>,
         which rounds cleanly to <strong style="color: var(--text); font-family: var(--mono);">350</strong> with
-        negligible drift. So the implied expected score here,
+        high accuracy. So the implied expected score here,
       </p>
       <div class="formula-block" id="katex-e"></div>
       <p>
@@ -542,6 +538,12 @@
         looks like this:
       </p>
 
+      <p>
+        In case you're wondering why the graph goes between 0 and 2 instead of -1 and 1 like I told you earlier
+        is to show 0 as the system not expecting you to win in the slightest, and 2 meaning to blow the opponent
+        out of the water.
+      </p>
+
       <div class="chart-wrap">
         <svg id="curve-chart" viewBox="0 0 640 320" width="100%" style="max-width: 640px; display:block; margin: 0 auto;"></svg>
       </div>
@@ -552,18 +554,16 @@
         close to certain.
       </p>
 
-      <h2>Where this leaves things</h2>
+      <h2>Where this leaves things:</h2>
       <p>
-        None of this claims to be a finished, validated rating system — it's one attempt at fixing
-        the two things about Elo that bothered me most, while keeping the one piece that's earned
-        its keep over decades of use. Everything above the expected-score curve — the K-factor
-        shape, the floor of 8, the ceiling of 3100, the square-root scaling of performance — is a
-        deliberate design choice, and open to being wrong in ways I haven't found yet.
+        If you find areas of improvement for the system, feel free to let me know! The system,
+        obviously isn't perfect and could need change, but it works well enough in its current
+        state to show the world.
       </p>
     </div>
   </section>
 
-  <footer>ΔR — a rating system, built and explained on this page.</footer>
+  <footer>Delta — a rating system, built and explained on this page.</footer>
 </div>
 
 <script>
