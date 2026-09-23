@@ -599,7 +599,7 @@
     const expectAdj = Math.tanh((r - o) / DIVISOR);
     const expectTerm = 1 + expectAdj;
     const bracket = perf - expectTerm;
-    const deltaR = k * Math.sqrt(g) * bracket;
+    const deltaR = k * (1.5 * Math.sqrt(g) - 0.5) * bracket;
     const e = (1 + expectAdj) / 2;
 
     const disp = document.getElementById('delta-display');
