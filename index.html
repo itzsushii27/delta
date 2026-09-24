@@ -629,11 +629,10 @@
   }
 
   render('katex-main',
-    '\\Delta R = \\sqrt{g} \\cdot \\left(8 + \\frac{\\max\\left(8,\\ \\frac{3100-r}{75}\\right) - 8}{c}\\right) \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
+    '\\left(1.5\\sqrt{g}-0.5\\right) \\cdot \\left(8 + \\frac{\\max\\left(8,\\ \\frac{3100-r}{75}\\right) - 8}{c}\\right) \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
     true);
   render('katex-full-k',
-    '\\Delta R = K\\sqrt{g} \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
-    true);
+    '\\Delta R = K\\left(1.5\\sqrt{g}-0.5\\right) \\cdot \\left[\\ \\frac{w-l}{g}+1 - \\left(1+\\tanh\\!\\left(\\frac{r-o}{350}\\right)\\right)\\ \\right]',
   render('katex-perf', '\\dfrac{w-l}{g}+1');
   render('katex-expect-term', '1+\\tanh\\!\\left(\\dfrac{r-o}{350}\\right)');
   render('katex-identity',
